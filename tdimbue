@@ -63,7 +63,7 @@ TMP="/tmp/$(uuidgen)"
 TYPE=tree
 for i in "${BUNDLE}/${TYPE}".*
 do
-	treeencode "${i}" > ${TMP}
+	treeencode "${i}" ${TMP}
 	SHA1_c="$(echo """${i}""" | sed """s/.*${TYPE}.//""")"
 	SHA1_r="$(git hash-object -t ${TYPE} """${TMP}""")"
 	[[ "${SHA1_c}" != "${SHA1_r}" ]] && echo "Error hashing ${i} (${SHA1_c} vs ${SHA1_r}); exiting" && exit 1
