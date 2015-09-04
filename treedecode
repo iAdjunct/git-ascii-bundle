@@ -4,7 +4,7 @@ import sys
 
 from treedecode import decodeTreeFile
 
-tree	=	open(sys.argv[1],'r').read()
+tree	=	open(sys.argv[1],'rb').read()
 tree	=	decodeTreeFile ( tree )
 sys.stdout.write ( tree )
 

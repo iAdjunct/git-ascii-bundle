@@ -37,7 +37,7 @@ def main () :
 	
 	
 	head	=	git ( 'rev-parse' , 'HEAD' ) .strip()
-	
+	write ( head , 'HEAD' )
 	
 	if startRev :
 		print 'Finding all assets relating to %s to ignore...' % ( startRev )
