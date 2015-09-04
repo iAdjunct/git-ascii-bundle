@@ -3,9 +3,11 @@
 
 BUNDLE="${1}"
 REPO="${2}"
+BRANCH_NAME="${3}"
 
-[ -z "${BUNDLE}" ] && echo "Usage: tdimbue <bundlePath> <repoPath>" && exit 1
-[ -z "${REPO}" ] && echo "Usage: tdimbue <bundlePath> <repoPath>" && exit 1
+[ -z "${BUNDLE}" ] && echo "Usage: tdimbue <bundlePath> <repoPath> <newBranchName>" && exit 1
+[ -z "${REPO}" ] && echo "Usage: tdimbue <bundlePath> <repoPath> <newBranchName>" && exit 1
+[ -z "${BRANCH_NAME}" ] && echo "Usage: tdimbue <bundlePath> <repoPath> <newBranchName>" && exit 1
 
 
 pushd "${BUNDLE}" > /dev/null
@@ -14,6 +16,11 @@ popd > /dev/null
 
 
 cd "${REPO}"
+
+
+git branch "${BRANCH_NAME}"
+git checkout "${BRANCH_NAME}"
+
 
 
 # Add all the blobs
