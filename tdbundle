@@ -5,6 +5,9 @@ import os
 import subprocess
 import re
 
+from treeencode import encodeTreeFile
+from treedecode import decodeTreeFile
+
 reCommitDependencies	=	re.compile ( r'(?P<relationship>tree|parent)\s+(?P<id>[^\s]+)' )
 reTreeDependencies		=	re.compile ( r'(?P<permissions>\d+)\s+(?P<class>[^\s]+)\s+(?P<id>[^\s]+)\s+(?P<name>.+)' )
 
@@ -49,7 +52,14 @@ def main () :
 	print 'Writing assets...'
 	for asset in assets :
 		filename = '%s.%s' % asset
-		contents = git ( 'cat-file' , asset[0] , asset[1] , target=filename )
+		if asset[0] == 'tree' :
+			contents = git ( 'cat-file' , asset[0] , asset[1] )
+			decoded = decodeTreeFile ( contents )
+			encoded = encodeTreeFile ( decoded )
+			assert encoded == contents , 'While looking at %s %s, performing a decode then an encode... however, the result was not the same (meaning we would not be able to recover this file later)'
+			write ( decoded , filename )
+		else :
+			git ( 'cat-file' , asset[0] , asset[1] , target=filename )
 	#
 
 
