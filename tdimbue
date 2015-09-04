@@ -71,4 +71,5 @@ done
 
 git update-ref HEAD "$(cat """${BUNDLE}/HEAD""")"
 git checkout HEAD
+echo "Note: if 'git status' reports changes, you may have to run 'git reset --hard'" # don't automatically do this, because that's poor form
 
