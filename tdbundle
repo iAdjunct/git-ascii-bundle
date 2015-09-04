@@ -41,6 +41,7 @@ def main () :
 	
 	if startRev :
 		print 'Finding all assets relating to %s to ignore...' % ( startRev )
+		startRev=	git ( 'rev-parse' , startRev ) .strip()
 		ignore	=	findAllAssetsForCommit ( startRev )
 		print '...done'
 	else :
