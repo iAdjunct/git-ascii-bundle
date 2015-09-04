@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+TMPA="tmp.$(uuidgen)"
+TMPB="tmp.$(uuidgen)"
+
+
+for i in "$@" # test for every file passed in
+do
+	./treedecode "${i}" > "${TMPA}"
+	./treeencode "${TMPA}" > "${TMPB}"
+	diff "${i}" "${TMPB}" > /dev/null 2>&1
+	[ $? -ne 0 ] && echo "Coding failed for ${i}" && cat "${i}" && echo && cat "${TMPB}" && echo
+	
+	rm "${TMPA}" "${TMPB}"
+done
+

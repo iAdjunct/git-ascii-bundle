@@ -1,0 +1,125 @@
+#!/usr/bin/env python
+
+import sys
+import os
+import subprocess
+import re
+
+reCommitDependencies	=	re.compile ( r'(?P<relationship>tree|parent)\s+(?P<id>[^\s]+)' )
+reTreeDependencies		=	re.compile ( r'(?P<permissions>\d+)\s+(?P<class>[^\s]+)\s+(?P<id>[^\s]+)\s+(?P<name>.+)' )
+
+
+def main () :
+	global repoPath
+	global bundlePath
+	global startRev
+	
+	repoPath		=	sys.argv[1]
+	bundlePath		=	sys.argv[2]
+	if len(sys.argv) == 4 :
+		startRev	=	sys.argv[3]
+	else :
+		startRev	=	None
+	
+	# Get a unique output name
+	while bundlePath.endswith('/') :
+		bundlePath = bundlePath[:-1]
+	oname=bundlePath
+	i = 0
+	while os.path.exists ( bundlePath ) :
+		i += 1
+		bundlePath = '%s (%s)' % ( oname , i )
+	
+	os.makedirs ( bundlePath )
+	
+	
+	head	=	git ( 'rev-parse' , 'HEAD' ) .strip()
+	
+	
+	if startRev :
+		print 'Finding all assets relating to %s to ignore...' % ( startRev )
+		ignore	=	findAllAssetsForCommit ( startRev )
+		print '...done'
+	else :
+		ignore	=	set()
+	
+	print 'Finding applicable assets relating to HEAD (%s)' % ( head )
+	assets	=	findAllAssetsForCommit ( head , ignore=ignore )
+	
+	print 'Writing assets...'
+	for asset in assets :
+		filename = '%s.%s' % asset
+		contents = git ( 'cat-file' , asset[0] , asset[1] , target=filename )
+	#
+
+
+def findAllAssetsForCommit ( top , ignore=set() ) :
+	toSearch	=	[ ('commit',top) ]
+	found		=	set(toSearch)
+	
+	while toSearch :
+		item	=	toSearch[0]
+		cls,top	=	item
+		del toSearch[0]
+		
+		if cls == 'commit' :
+			commit	=	git ( 'cat-file' , '-p' , top ) .strip() .split('\n')
+			for line in commit :
+				m = reCommitDependencies.match ( line )
+				if not m :
+					break
+				id = str(m.group('id'))
+				assert len(id)==40 , 'id was "%s", which is not of length 40; in %s %s' % ( id , cls,top )
+				relationship = str(m.group('relationship'))
+				if relationship == 'parent' : # make things easier
+					relationship = 'commit'
+				newItem = (relationship,id)
+				if newItem in found or newItem in ignore :
+					continue
+				found.add ( newItem )
+				toSearch.append ( newItem )
+		elif cls == 'tree' :
+			tree	=	git ( 'cat-file' , '-p' , top )
+			for m in reTreeDependencies.finditer(tree) :
+				id = str(m.group('id'))
+				if id in found or id in ignore :
+					continue
+				assert len(id)==40 , 'id was "%s", which is not of length 40; in %s %s' % ( id , cls,top )
+				cls = str(m.group('class'))
+				newItem = (cls,id)
+				if newItem in found or newItem in ignore :
+					continue
+				found.add ( newItem )
+				toSearch.append ( newItem )
+		elif cls == 'blob' :
+			pass # it's already in there!
+		else :
+			print '...skipping type "%s"' % ( cls )
+	return found
+
+
+
+def write ( data , filename ) :
+	file = stream ( filename )
+	file.write ( data )
+	file.close()
+def stream ( filename ) :
+	path = os.path.join ( bundlePath , filename )
+	return open ( path , 'w' )
+
+def git ( *args , **options ) :
+	args = [ 'git' ] + list(args)
+	if 'target' in options :
+		str = stream ( options['target'] )
+		p = subprocess.Popen ( args , cwd=repoPath , stdout=str )
+	else :
+		p = subprocess.Popen ( args , cwd=repoPath , stdout=subprocess.PIPE )
+	out = p.communicate()[0]
+	if 'target' in options :
+		str.close()
+	assert p.returncode == 0 , 'Failed to run %s' % ( ' '.join(args) )
+	return out
+
+
+
+main()
