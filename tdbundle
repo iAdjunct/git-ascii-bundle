@@ -116,7 +116,7 @@ def write ( data , filename ) :
 	file.close()
 def stream ( filename ) :
 	path = os.path.join ( bundlePath , filename )
-	return open ( path , 'w' )
+	return open ( path , 'wb' )
 
 def git ( *args , **options ) :
 	args = [ 'git' ] + list(args)
