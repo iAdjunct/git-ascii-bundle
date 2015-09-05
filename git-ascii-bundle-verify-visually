@@ -10,7 +10,7 @@
 
 BUNDLE="${1}"
 
-[ -z "${BUNDLE}" ] && echo "Usage: understandTheNames <bundlePath>" && exit
+[ -z "${BUNDLE}" ] && echo "Usage: git-ascii-bundle-verify-visually <bundlePath>" && exit
 
 
 
@@ -56,7 +56,7 @@ DECODED_TMP="/tmp/$(uuidgen)"
 for i in "${BUNDLE}/tree".*
 do
 	# Encode the tree and hash it
-	treeencode "${i}" ${ENCODED_TMP} # decodes that tree and saves it in the temporary location
+	git-tree-encode "${i}" ${ENCODED_TMP} # decodes that tree and saves it in the temporary location
 	echo "   The file: ${i}"
 	echo "   Its hash: $(git hash-object -t tree """${ENCODED_TMP}""")"
 	

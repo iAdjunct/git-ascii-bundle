@@ -1,0 +1,80 @@
+#!/bin/bash
+
+
+
+# Argument processing
+
+BUNDLE=
+VERBOSE=0
+
+for i in "$@"
+do
+	if [[ "${i}" == "-v" ]]
+	then
+		VERBOSE=1
+	else
+		BUNDLE="${i}"
+	fi
+done
+
+[ -z "${BUNDLE}" ] && echo "Usage: git-ascii-bundle-verify [-v] <bundlePath>" && exit
+
+
+
+
+
+# Go through all the blobs
+
+for i in "${BUNDLE}/blob".*
+do
+	[ $VERBOSE -ne 0 ] && echo "${i}"
+	
+	SHA1_c="$(echo """${i}""" | sed 's/.*blob.//')"
+	SHA1_r="$(git hash-object -t blob """${i}""")" # reported hash, as provided by git
+	
+	[ $VERBOSE -ne 0 ] && echo "   Hash: ${SHA1_r}"
+	
+	[[ "${SHA1_c}" != "${SHA1_r}" ]] && echo "! Error hashing ${i}" && echo "   ${SHA1_c} vs ${SHA1_r}"
+done
+
+
+
+# Go through all the commits
+
+for i in "${BUNDLE}/commit".*
+do
+	[ $VERBOSE -ne 0 ] && echo "${i}"
+	
+	SHA1_c="$(echo """${i}""" | sed 's/.*commit.//')"
+	SHA1_r="$(git hash-object -t commit """${i}""")" # reported hash, as provided by git
+	
+	[ $VERBOSE -ne 0 ] && echo "   Hash: ${SHA1_r}"
+	
+	[[ "${SHA1_c}" != "${SHA1_r}" ]] && echo "! Error hashing ${i}" && echo "   ${SHA1_c} vs ${SHA1_r}"
+done
+
+
+
+
+# Go through all the trees
+
+ENCODED_TMP="/tmp/$(uuidgen)"
+
+for i in "${BUNDLE}/tree".*
+do
+	[ $VERBOSE -ne 0 ] && echo "${i}"
+	git-tree-encode "${i}" ${ENCODED_TMP}
+	
+	SHA1_c="$(echo """${i}""" | sed 's/.*tree.//')"
+	SHA1_r="$(git hash-object -t tree """${ENCODED_TMP}""")" # reported hash, as provided by git
+	
+	[ $VERBOSE -ne 0 ] && echo "   Hash: ${SHA1_r}"
+	
+	[[ "${SHA1_c}" != "${SHA1_r}" ]] && echo "! Error hashing ${i} (post-encoding)" && echo "   ${SHA1_c} vs ${SHA1_r}"
+	
+	rm "${ENCODED_TMP}"
+done
+
+
+
+

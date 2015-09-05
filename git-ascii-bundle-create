@@ -49,6 +49,7 @@ def main () :
 	
 	print 'Finding applicable assets relating to HEAD (%s)' % ( head )
 	assets	=	findAllAssetsForCommit ( head , ignore=ignore )
+	print '...done'
 	
 	print 'Writing assets...'
 	for asset in assets :
@@ -61,6 +62,7 @@ def main () :
 			write ( decoded , filename )
 		else :
 			git ( 'cat-file' , asset[0] , asset[1] , target=filename )
+	print '...done'
 	#
 
 
