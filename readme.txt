@@ -39,11 +39,3 @@ git-ascii-bundle-verify <bundlePath>
 
 Runs every object file in <bundlePath> through 'git hash-object' appropriately and checks
 the results.
-
-
-
-git-ascii-bundle-verify-visually <bundlePath>
-
-Runs every object file in <bundlePath> through 'git hash-object' appropriately and prints
-the resultant hash to the screen. This is useful for explaining the origins of the hash
-to users unfamiliar with the hash who may wonder if other data is hidden in those bytes.
